@@ -1,0 +1,421 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Change Detection Explained</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/beige.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>Change Detection Explained</h1>
+				</section>
+				<section>
+					<h2>Agenda</h2>
+					<ul>
+						<li>Change detection?</li>
+						<li>Prior work</li>
+						<li>Angular 4</li>
+						<li>React Fiber</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Change detection?</h2>
+				</section>
+				<section>
+					<img src="img/onchange_base.svg">
+				</section>
+				<section>
+					<img src="img/onchange_change.svg">
+        </section>
+				<section>
+          <h3>Things that cause change</h3>
+          <ul>
+            <li>Events - click, submit, ...</li>
+            <li>XHR - fetching data from a remote server</li>
+            <li>Timers - setTimeout(), setInterval()</li>
+          </ul>
+        </section>
+				<section>
+					<h2>Prior Work</h2>
+				</section>
+				<section>
+					<h3>Manual Re-rendering</h3>
+					<ul>
+						<li>Backbone</li>
+						<li>Ext JS</li>
+						<li>Dojo</li>
+					</ul>
+				</section>
+				<section>
+					<blockquote>I have no idea what I should re-render. You figure it out.</blockquote>
+        </section>
+				<section>
+          <img src="img/onchange_manual.svg">
+        </section>
+				<section>
+						<pre><code class="hljs" data-trim contenteditable>
+Backbone.View.extend({
+  initialize: function() {
+    this.model = new SearchModel();
+    this.model.bind('change:results', this.addResults, this);
+  },
+
+  addResults: function() {
+    var viewResults = new SearchResultsView({
+      model: this.model.get('results').items
+    });
+
+    $(this).html(viewResults.render().el);
+  }
+});
+						</code></pre>
+				</section>
+				<section>
+					<h3>Data Binding</h3>
+					<ul>
+						<li>Ember.js</li>
+						<li>Knockout.js</li>
+						<li>Vue.js</li>
+					</ul>
+				</section>
+				<section>
+					<blockquote>I know exactly what changed and what should be re-rendered because I control your models and views.</blockquote>
+				</section>
+				<section>
+				  <pre><code class="hljs" data-trim contenteditable>
+Ember.Component.extend({
+  actions: {
+    handleFilterEntry() {
+      let filterInputValue = this.get('value');
+      let filterAction = this.get('filter');
+
+      filterAction(filterInputValue).then((filterResults) => {
+        this.set('results', filterResults)
+      });
+    }
+  }
+});
+            </code></pre>
+				</section>
+				<section>
+					<img src="img/onchange_databinding.svg">
+				</section>
+				<section>
+					<h3>Dirty Checking</h3>
+					<ul>
+						<li>Angular</li>
+						<li>Aurelia (fall-back)</li>
+					</ul>
+				</section>
+				<section>
+					<blockquote>I have no idea what changed, so I'll just check everything that may need updating.</blockquote>
+				</section>
+				<section>
+					<img src="img/onchange_watch.svg">
+        </section>
+				<section>
+          <pre><code class="hljs" data-trim contenteditable>
+function(['UserService'], UserService) {
+  $scope.name = 'User';
+
+  $scope.$watch(function() {
+    return $scope.name;
+  }, function(newValue, oldValue) {
+    UserService.save(newValue);
+  });
+}
+          </code></pre>
+        </section>
+				<section>
+					<h3>Virtual Dom</h3>
+					<ul>
+						<li>React</li>
+						<li>Preact</li>
+						<li>Inferno</li>
+					</ul>
+				</section>
+				<section>
+					<blockquote>I have no idea what changed so I'll just re-render everything and see what's different now.</blockquote>
+				</section>
+				<section>
+					<img src="img/onchange_vdom_initial.svg">
+				</section>
+				<section>
+					<img src="img/onchange_vdom_change.svg">
+        </section>
+				<section>
+          <pre><code class="hljs" data-trim contenteditable>
+class HelloMessage extends React.Component {
+  render() {
+    return <div>Hello {this.props.name}</div>;
+  }
+}
+          </code></pre>
+        </section>
+				<section>
+					<h3>Immutable Data Structures</h3>
+					<ul>
+            <li>ImmutableJS</li>
+						<li>Om (ClojureScript React bindings)</li>
+					</ul>
+				</section>
+				<section>
+					<blockquote>I know exactly what didn't change.</blockquote>
+				</section>
+				<section>
+					<img src="img/onchange_immutable.svg">
+        </section>
+				<section>
+          <pre><code class="hljs" data-trim contenteditable>
+              const { Map, List } = require('immutable');
+              
+              const Component = React.createClass({
+                getInitialState() {
+                  return { data: Map({ count: 0, items: List() }) }
+                },
+              
+                handleCountClick() {
+                  this.setState(({data}) => ({
+                    data: data.update('count', v => v + 1)
+                  }));
+                }
+              });
+          </code></pre>
+        </section>
+				<section>
+					<h2>Angular 4</h2>
+        </section>
+				<section>
+          <h3>Who notifies Angular?</h3>
+        </section>
+				<section>
+          <h3>Zones</h3>
+        </section>
+        <section>
+          <blockquote>Zones can perform an operation each time code enters or exits a task.</blockquote>
+        </section>
+				<section>
+						<ul>
+              <li>Monkey patching native APIs</li>
+              <li>Native feature of Dart language</li>
+              <li>An execution context that persists across async tasks</li>
+						</ul>
+        </section>
+				<section>
+          <pre><code class="hljs" data-trim contenteditable>
+foo();
+setTimeout(doSth, 0);
+bar();
+          </code></pre>
+        </section>
+				<section>
+          <pre><code class="hljs" data-trim contenteditable>
+zone.run(() => {
+  foo();
+  setTimeout(doSth, 0);
+  bar();
+});
+          </code></pre>
+          <p>setTimeout() at this time is already monkey-patched</p>
+        </section>
+				<section>
+          <h3>Angular has it's own zone</h3>
+        </section>
+				<section>
+          <h3>Each component has its own Change Detector</h3>
+        </section>
+				<section>
+          <img src="img/cd-tree.svg" width="60%" style="background: grey">
+        </section>
+				<section>
+          <img src="img/cd-tree-2.svg" width="60%" style="background: grey">
+        </section>
+				<section>
+          <img src="img/cd-tree-3.svg" width="60%" style="background: grey">
+        </section>
+				<section>
+          <img src="img/cd-tree-4.svg" width="60%" style="background: grey">
+        </section>
+				<section>
+          <img src="img/cd-tree-7.svg" width="60%" style="background: grey">
+        </section>
+				<section>
+          <blockquote>Change Detection is always performed in the same order starting from root.</blockquote>
+        </section>
+        <section>
+          <ul>
+            <li>Change Detection Graph is a directed tree</li>
+            <li>Way more predictable</li>
+            <li>Gets stable after a single pass</li>
+            <li>Generates VM friendly code for better performance</li>
+          </ul>
+        </section>
+        <section>
+          <blockquote>Can perform hundreds of thousands of simple checks in a few milliseconds.</blockquote>
+        </section>
+        <section>
+          <h3>Immutable Objects<h3>
+        </section>
+        <section>
+          <blockquote>Angular can skip entire Change Detection subtrees when inputs properties don't change.</blockquote>
+        </section>
+        <section>
+          <h3>Perform change detection on view only if input has changed</h3>
+        </section>
+        <section>
+          <pre><code class="hljs" data-trim contenteditable>
+@Component({
+  template: `
+    <h2>{{vData.name}}</h2>
+    <span>{{vData.email}}</span>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+class VCardCmp {
+  @Input() vData;
+}
+          </code></pre>
+        </section>
+        <section>
+          <h2>React Fiber</h2>
+        </section>
+				<section>
+          <ul>
+            <li>Reimplementation of React's reconciler core algorithm</li>
+            <li>It's headline feature is incremental rendering</li>
+            <li>And the ability to assign priority to different types of updates</li>
+          </li>
+        </section>
+        <section>
+          <h3>What is a fiber?</h3>
+        </section>
+        <section>
+          <blockquote>Basically the idea of React Fiber is to not use the JavaScript stack but instead unroll what we would normally do on the stack and put it into heap objects.</blockquote>
+        </section>
+        <section>
+          <h3>We need to be able to</h3>
+          <ul>
+            <li>Pause work and come back to it later</li>
+            <li>Assign priority to different types of work</li>
+            <li>Reuse previously completed work</li>
+            <li>Abort work if it's no longer needed</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Stack reconciler<h3>
+        </section>
+        <section>
+          <img src="img/react-stack.png" width="80%">
+        </section>
+        <section>
+          <h3>Fiber reconciler<h3>
+        </section>
+        <section>
+          <img src="img/react-fiber.png" width="80%">
+        </section>
+        <section>
+          <h3>Newer browsers (and React Native) implement APIs that help address this exact problem</h3>
+        </section>
+				<section>
+          <blockquote>The <strong>window.requestIdleCallback</strong> method queues a function to be called during a browser's idle periods.</blockquote>
+        </section>
+        <section>
+          <blockquote>And <strong>window.requestAnimationFrame</strong> schedules a high priority function to be called on the next animation frame.</blockquote>
+        </section>
+        <section>
+          <h3>Work is divided into different priorities<h3>
+        </section>
+				<section>
+          <pre><code class="hljs" data-trim contenteditable>
+module.exports = {
+  NoWork: 0, // No work is pending.
+  SynchronousPriority: 1, // For controlled text inputs
+  TaskPriority: 2, // Completes at the end of the current tick
+  HighPriority: 3, // Interaction that needs to completed
+  LowPriority: 4, // Data fetching
+  OffscreenPriority: 5, // Won't be visible but do the work
+};
+          </code></pre>
+        </section>
+        <section>
+          <h3>Error Boundaries<h3>
+        </section>
+        <section>
+          <pre><code class="hljs" data-trim contenteditable>
+class ErrorBoundary extends React.Component {
+  componentDidCatch(error, info) {
+    this.setState({ hasError: true });
+    logErrorToMyService(error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>;
+    }
+    return this.props.children;
+  } 
+}
+          </code></pre>
+        </section>
+        <section>
+          <h3>Fiber implemention<h3>
+        </section>
+        <section>
+          <ul>
+            <li>Not typical JavaScript code</li>
+            <li>Implementation is more C-like, message-based API</li>
+            <li>Using almost no recursion (bunch of while(true) loops)</li>
+            <li>Static size of messages (compatible with WASM)</li>
+            <li>Simplifies implementation of custom renderers</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Is it any "faster"?</h3>
+        </section>
+        <section>
+          <iframe width="854" height="480" src="https://www.youtube.com/embed/Qu_6ItnlDQg" frameborder="0" allowfullscreen></iframe>
+        </section>
+        <section data-background="img/magic.gif">
+        </section>
+        <section>
+          <h1>Thanks</h1>
+        </section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
