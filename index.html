@@ -304,11 +304,18 @@ class VCardCmp {
             <li>And the ability to assign priority to different types of updates</li>
           </li>
         </section>
+				<section>
+          <ul>
+            <li>Currentyl in production on messenger.com</li>
+            <li>25,000 React Component used by Facebook</li>
+            <li>isfiberreadyyet.com</li>
+          </li>
+        </section>
         <section>
           <h3>What is a fiber?</h3>
         </section>
         <section>
-          <blockquote>Basically the idea of React Fiber is to not use the JavaScript stack but instead unroll what we would normally do on the stack and put it into heap objects.</blockquote>
+          <blockquote>Basically the idea of React Fiber is to not use the JavaScript stack but instead unroll what we would normally do on the stack and put it into heap objects - a virtual stack frame.</blockquote>
         </section>
         <section>
           <h3>We need to be able to</h3>
@@ -396,6 +403,16 @@ class ErrorBoundary extends React.Component {
         <section data-background="img/magic.gif">
         </section>
         <section>
+          <h3>Tradeoffs<h3>
+        </section>
+        <section>
+          <ul>
+            <li>Priority strategy works for component state</li>
+            <li>Some lifecycle methods don't have deterministic order</li>
+            <li>Reconciler is not available for component testing</li>
+          </ul>
+        </section>
+        <section>
           <h3>The future<h3>
         </section>
         <section>
@@ -403,6 +420,7 @@ class ErrorBoundary extends React.Component {
             <li>Exposing priority API (hooks)</li>
             <li>Concurrent processing in a worker - SharedArrayBuffer</li>
             <li>Running reconciler in WASM - DOM access</li>
+            <li>Streaming chunks for rendering</li>
           </ul>
         </section>
         <section>
